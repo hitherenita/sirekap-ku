@@ -1,0 +1,17 @@
+/* Berisi konfigurasi Tailwind CSS dan pengaturan huruf IBM Plex Sans untuk seluruh aplikasi. */
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: #fafafa;
+    color: #171717;
+  }
+}

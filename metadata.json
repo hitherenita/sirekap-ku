@@ -1,0 +1,6 @@
+{
+  "name": "SiRekap Unit",
+  "description": "Aplikasi Pengelolaan Data dan Otomatisasi Laporan Unit Kerja",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
