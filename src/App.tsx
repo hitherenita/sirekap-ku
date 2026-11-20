@@ -140,18 +140,8 @@ function SiRekapAppContent() {
     setActiveSection(section);
   };
 
-  if (!currentUser) {
-    return <LoginView users={appState.users} onLoginSuccess={handleLoginSuccess} />;
-  }
-
-  const safeSection = canAccessSection(currentUser.role, activeSection)
-    ? activeSection
-    : getDefaultSectionForRole(currentUser.role);
-
-  const visibleTasks = getVisibleTasksForUser(appState.tasks, currentUser);
-
   const detailResult = useMemo(() => {
-    if (!selectedDetailTaskId) {
+    if (!currentUser || !selectedDetailTaskId) {
       return null;
     }
     return getTaskDetailWithTimeline(
@@ -170,6 +160,16 @@ function SiRekapAppContent() {
     appState.categories,
     currentUser,
   ]);
+
+  if (!currentUser) {
+    return <LoginView users={appState.users} onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const safeSection = canAccessSection(currentUser.role, activeSection)
+    ? activeSection
+    : getDefaultSectionForRole(currentUser.role);
+
+  const visibleTasks = getVisibleTasksForUser(appState.tasks, currentUser);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
