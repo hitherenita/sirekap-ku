@@ -5,6 +5,7 @@ import {UserEntity, WorkCategoryEntity, WorkTaskEntity} from '../config';
 import {
   computeUnitDashboardAnalytics,
   getDefaultMonthRange,
+  getInitialPeriodRange,
 } from '../lib/analytics';
 import {
   formatDateId,
@@ -28,8 +29,9 @@ export default function DashboardView({
   onSelectTaskDetail,
 }: DashboardViewProps) {
   const defaultRange = useMemo(() => getDefaultMonthRange(), []);
-  const [startDate, setStartDate] = useState(defaultRange.startDate);
-  const [endDate, setEndDate] = useState(defaultRange.endDate);
+  const initialRange = useMemo(() => getInitialPeriodRange(tasks), [tasks]);
+  const [startDate, setStartDate] = useState(initialRange.startDate);
+  const [endDate, setEndDate] = useState(initialRange.endDate);
   const [dateError, setDateError] = useState<string | null>(null);
 
   const todayIso = getTodayIsoDate();

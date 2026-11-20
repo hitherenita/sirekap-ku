@@ -13,7 +13,7 @@ import {
   WorkCategoryEntity,
   WorkTaskEntity,
 } from '../config';
-import {getDefaultMonthRange} from '../lib/analytics';
+import {getDefaultMonthRange, getInitialPeriodRange} from '../lib/analytics';
 import {formatPercentId, getTodayIsoDate} from '../lib/format';
 import {
   buildUnitReportData,
@@ -37,8 +37,9 @@ export default function ReportsView({
   unitSetting,
 }: ReportsViewProps) {
   const defaultRange = useMemo(() => getDefaultMonthRange(), []);
-  const [startDate, setStartDate] = useState(defaultRange.startDate);
-  const [endDate, setEndDate] = useState(defaultRange.endDate);
+  const initialRange = useMemo(() => getInitialPeriodRange(tasks), [tasks]);
+  const [startDate, setStartDate] = useState(initialRange.startDate);
+  const [endDate, setEndDate] = useState(initialRange.endDate);
   const [employeeId, setEmployeeId] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [dateError, setDateError] = useState<string | null>(null);

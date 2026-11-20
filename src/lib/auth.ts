@@ -100,14 +100,14 @@ export function canAccessSection(
   role: UserRole,
   sectionId: NavigationSectionId,
 ): boolean {
-  return ROLE_PERMISSIONS[role].allowedSections.includes(sectionId);
+  return ROLE_PERMISSIONS[role]?.allowedSections.includes(sectionId) ?? false;
 }
 
 /**
  * Mengembalikan bagian halaman awal sesuai peran pengguna.
  */
 export function getDefaultSectionForRole(role: UserRole): NavigationSectionId {
-  return ROLE_PERMISSIONS[role].defaultSection;
+  return ROLE_PERMISSIONS[role]?.defaultSection ?? 'my-tasks';
 }
 
 /**

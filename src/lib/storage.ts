@@ -1,5 +1,31 @@
 // Berisi fungsi pembacaan dan penyimpanan seluruh data aplikasi pada satu kunci localStorage dengan penanganan data kosong atau rusak.
-import {AppStorageState, INITIAL_APP_STATE, STORAGE_KEY} from '../config';
+import {
+  AppStorageState,
+  INITIAL_APP_STATE,
+  ROLE_PERMISSIONS,
+  STORAGE_KEY,
+  UserEntity,
+  UserRole,
+} from '../config';
+
+const VALID_ROLES = new Set<UserRole>(['ADMIN', 'PEGAWAI', 'PIMPINAN']);
+
+function isValidStoredUser(value: unknown): value is UserEntity {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  const u = value as Partial<UserEntity>;
+  return (
+    typeof u.id === 'string' &&
+    u.id.length > 0 &&
+    typeof u.email_or_username === 'string' &&
+    typeof u.password === 'string' &&
+    typeof u.full_name === 'string' &&
+    typeof u.role === 'string' &&
+    VALID_ROLES.has(u.role as UserRole) &&
+    typeof u.is_active === 'boolean'
+  );
+}
 
 function cloneInitialState(): AppStorageState {
   return {
@@ -28,10 +54,28 @@ export function loadAppState(): AppStorageState {
     if (!parsed || typeof parsed !== 'object') {
       return cloneInitialState();
     }
+
+    const validUsers = Array.isArray(parsed.users)
+      ? parsed.users.filter(isValidStoredUser)
+      : [];
+    const hasActiveAdmin = validUsers.some(
+      (user) => user.role === 'ADMIN' && user.is_active,
+    );
+    const resolvedUsers =
+      validUsers.length > 0 && hasActiveAdmin
+        ? validUsers
+        : cloneInitialState().users;
+
+    const rawActiveId =
+      typeof parsed.activeUserId === 'string' ? parsed.activeUserId : null;
+    const activeUser = rawActiveId
+      ? resolvedUsers.find((u) => u.id === rawActiveId && u.is_active)
+      : undefined;
+    const resolvedActiveUserId =
+      activeUser && ROLE_PERMISSIONS[activeUser.role] ? activeUser.id : null;
+
     return {
-      users: Array.isArray(parsed.users) && parsed.users.length > 0
-        ? parsed.users
-        : cloneInitialState().users,
+      users: resolvedUsers,
       categories: Array.isArray(parsed.categories)
         ? parsed.categories
         : cloneInitialState().categories,
@@ -56,8 +100,7 @@ export function loadAppState(): AppStorageState {
                   : INITIAL_APP_STATE.unitSetting.leader_nip,
             }
           : {...INITIAL_APP_STATE.unitSetting},
-      activeUserId:
-        typeof parsed.activeUserId === 'string' ? parsed.activeUserId : null,
+      activeUserId: resolvedActiveUserId,
     };
   } catch {
     return cloneInitialState();

@@ -23,6 +23,7 @@ export default function LoginView({users, onLoginSuccess}: LoginViewProps) {
 
   const usernameInputRef = useRef<HTMLInputElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -52,6 +53,7 @@ export default function LoginView({users, onLoginSuccess}: LoginViewProps) {
     setUsername(sampleUser.email_or_username);
     setPassword(sampleUser.password);
     setErrors({});
+    submitButtonRef.current?.focus();
   };
 
   return (
@@ -161,6 +163,7 @@ export default function LoginView({users, onLoginSuccess}: LoginViewProps) {
           </div>
 
           <button
+            ref={submitButtonRef}
             type="submit"
             className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-base font-medium text-white transition-colors duration-150 ease-out hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2"
           >

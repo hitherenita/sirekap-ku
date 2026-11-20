@@ -90,6 +90,41 @@ export function getDefaultMonthRange(referenceDate: Date = new Date()): {
 }
 
 /**
+ * Menentukan rentang tanggal awal tampilan: bulan berjalan jika ada tugas, atau bulan dari tugas terbaru agar dashboard tidak kosong saat diuji pada tanggal perangkat berbeda.
+ */
+export function getInitialPeriodRange(
+  tasks: WorkTaskEntity[],
+  referenceDate: Date = new Date(),
+): {
+  startDate: string;
+  endDate: string;
+} {
+  const currentMonth = getDefaultMonthRange(referenceDate);
+  const hasTasksInCurrentMonth = tasks.some(
+    (task) =>
+      task.due_date >= currentMonth.startDate &&
+      task.due_date <= currentMonth.endDate,
+  );
+  if (hasTasksInCurrentMonth || tasks.length === 0) {
+    return currentMonth;
+  }
+
+  let latestDueDate = '';
+  for (const task of tasks) {
+    if (task.due_date && task.due_date > latestDueDate) {
+      latestDueDate = task.due_date;
+    }
+  }
+  const match = /^(\d{4})-(\d{2})-\d{2}$/.exec(latestDueDate);
+  if (!match) {
+    return currentMonth;
+  }
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  return getDefaultMonthRange(new Date(year, monthIndex, 1));
+}
+
+/**
  * Menghitung tingkat penyelesaian (%) dengan mengeluarkan tugas Dibatalkan dari pembagi target efektif.
  */
 export function calculateCompletionRate(

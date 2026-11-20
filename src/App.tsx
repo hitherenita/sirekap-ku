@@ -1,5 +1,5 @@
 // Berisi pengelolaan sesi pengguna aktif, pengalihan halaman sesuai peran (RBAC), dan tampilan utama SiRekap Unit.
-import {useEffect, useMemo, useState} from 'react';
+import {Component, ErrorInfo, ReactNode, useEffect, useMemo, useState} from 'react';
 import AppHeader from './components/AppHeader';
 import DashboardView from './components/DashboardView';
 import EmployeeTasksView from './components/EmployeeTasksView';
@@ -13,6 +13,7 @@ import {
   NavigationSectionId,
   ROLE_LABELS,
   SECTION_LABELS,
+  STORAGE_KEY,
   UserEntity,
 } from './config';
 import {
@@ -24,7 +25,66 @@ import {
 import {loadAppState, saveAppState} from './lib/storage';
 import {getTaskDetailWithTimeline} from './lib/taskDetail';
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class AppErrorBoundary extends Component<
+  {children: ReactNode},
+  ErrorBoundaryState
+> {
+  state: ErrorBoundaryState = {hasError: false};
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return {hasError: true};
+  }
+
+  componentDidCatch(_error: Error, _info: ErrorInfo) {
+    // Tangkap error tak terduga agar layar tidak kosong di browser pengguna.
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center">
+            <h1 className="text-xl font-semibold text-neutral-900">
+              Terjadi Gangguan Tampilan
+            </h1>
+            <p className="mt-2 text-base text-neutral-600">
+              Muat ulang data awal aplikasi untuk memulihkan sesi Anda.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  window.localStorage.removeItem(STORAGE_KEY);
+                } catch {
+                  // Abaikan jika localStorage tidak tersedia.
+                }
+                window.location.reload();
+              }}
+              className="mt-4 min-h-[44px] rounded-xl bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2"
+            >
+              Muat Ulang Data Awal
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
+  return (
+    <AppErrorBoundary>
+      <SiRekapAppContent />
+    </AppErrorBoundary>
+  );
+}
+
+function SiRekapAppContent() {
   const [appState, setAppState] = useState<AppStorageState>(() => loadAppState());
   const currentUser = useMemo(
     () => resolveActiveUser(appState.users, appState.activeUserId),
@@ -45,6 +105,12 @@ export default function App() {
   useEffect(() => {
     saveAppState(appState);
   }, [appState]);
+
+  useEffect(() => {
+    if (currentUser && !canAccessSection(currentUser.role, activeSection)) {
+      setActiveSection(getDefaultSectionForRole(currentUser.role));
+    }
+  }, [currentUser, activeSection]);
 
   const handleLoginSuccess = (user: UserEntity) => {
     setAppState((prev) => ({
